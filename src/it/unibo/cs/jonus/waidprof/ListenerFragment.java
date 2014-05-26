@@ -3,6 +3,9 @@
  */
 package it.unibo.cs.jonus.waidprof;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import it.unibo.cs.jonus.waidprof.ListenerService.ListenerServiceBinder;
 import android.content.ComponentName;
 import android.content.Context;
@@ -13,12 +16,15 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
+import android.widget.RelativeLayout;
 
 /**
  * @author jei
@@ -30,11 +36,8 @@ public class ListenerFragment extends Fragment {
 	private static final int MODE_RUNNING = 1;
 
 	// UI elements
-	private ImageView noneView;
-	private ImageView walkingView;
-	private ImageView carView;
-	private ImageView trainView;
-	private ImageView idleView;
+	private Map<String, ImageView> vehicleViewsMap;
+	private Map<String, Integer> vehicleImagesMap;
 	private Button startServiceButton;
 	private Button stopServiceButton;
 	// UI variables
@@ -62,8 +65,8 @@ public class ListenerFragment extends Fragment {
 
 				@Override
 				public void sendCurrentEvaluation(Evaluation evaluation) {
-					// TODO Auto-generated method stub
-
+					// Update the UI
+					updateVehicleImage(evaluation.getCategory());
 				}
 
 			});
@@ -84,6 +87,15 @@ public class ListenerFragment extends Fragment {
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this
 				.getActivity());
 
+		// TODO Map of images
+		vehicleImagesMap = new HashMap<String, Integer>();
+		vehicleImagesMap.put("none", R.drawable.none);
+		vehicleImagesMap.put("walking", R.drawable.walking);
+		vehicleImagesMap.put("car", R.drawable.car);
+		vehicleImagesMap.put("train", R.drawable.train);
+		vehicleImagesMap.put("idle", R.drawable.idle);
+		vehicleViewsMap = new HashMap<String, ImageView>();
+
 		// Set initial classification
 		currentClassification = "none";
 	}
@@ -95,11 +107,29 @@ public class ListenerFragment extends Fragment {
 				false);
 
 		// Set classifications images
-		noneView = (ImageView) rootView.findViewById(R.id.noneView);
-		walkingView = (ImageView) rootView.findViewById(R.id.walkingView);
-		carView = (ImageView) rootView.findViewById(R.id.carView);
-		trainView = (ImageView) rootView.findViewById(R.id.trainView);
-		idleView = (ImageView) rootView.findViewById(R.id.idleView);
+		for (Map.Entry<String, Integer> entry : vehicleImagesMap.entrySet()) {
+			// Set the attributes of the image
+			ImageView newView = new ImageView(getActivity());
+			newView.setImageResource(entry.getValue());
+			newView.setMaxHeight(dpToPx(50));
+			newView.setMinimumHeight(dpToPx(50));
+			newView.setMaxWidth(dpToPx(175));
+			newView.setMinimumWidth(dpToPx(175));
+			newView.setScaleType(ScaleType.CENTER_INSIDE);
+			RelativeLayout.LayoutParams newViewLayout = new RelativeLayout.LayoutParams(
+					dpToPx(150), dpToPx(150));
+			newViewLayout.addRule(RelativeLayout.CENTER_HORIZONTAL);
+			newViewLayout.setMargins(0, dpToPx(20), 0, 0);
+			newView.setVisibility(View.INVISIBLE);
+
+			// Add the image to the root view
+			RelativeLayout rootLayout = (RelativeLayout) rootView
+					.findViewById(R.id.listenerTopLayout);
+			rootLayout.addView(newView, newViewLayout);
+
+			// Add the view to the map
+			vehicleViewsMap.put(entry.getKey(), newView);
+		}
 
 		// Set service start/stop buttons and callbacks
 		startServiceButton = (Button) rootView.findViewById(R.id.listenerStart);
@@ -118,7 +148,7 @@ public class ListenerFragment extends Fragment {
 		});
 
 		// Set none view visible
-		noneView.setVisibility(View.VISIBLE);
+		vehicleViewsMap.get("none").setVisibility(View.VISIBLE);
 
 		return rootView;
 	}
@@ -198,6 +228,9 @@ public class ListenerFragment extends Fragment {
 
 			// Change the UI mode
 			setUIMode(MODE_IDLE);
+
+			// Show the image for "none"
+			updateVehicleImage("none");
 		}
 	}
 
@@ -217,6 +250,26 @@ public class ListenerFragment extends Fragment {
 			stopServiceButton.setEnabled(true);
 			break;
 		}
+	}
+
+	private void updateVehicleImage(String vehicle) {
+		if (!currentClassification.equals(vehicle)) {
+			// Hide the previous image, show the new one
+			ImageView viewToHide = vehicleViewsMap.get(currentClassification);
+			viewToHide.setVisibility(View.INVISIBLE);
+			ImageView viewToShow = vehicleViewsMap.get(vehicle);
+			viewToShow.setVisibility(View.VISIBLE);
+
+			currentClassification = vehicle;
+		}
+	}
+
+	private int dpToPx(int dp) {
+		DisplayMetrics displayMetrics = getActivity().getResources()
+				.getDisplayMetrics();
+		int px = Math.round(dp
+				* (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+		return px;
 	}
 
 }

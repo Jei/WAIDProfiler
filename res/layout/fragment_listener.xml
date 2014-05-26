@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/listenerTopLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -19,66 +20,6 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/listenerStart"
         android:text="@string/listener_stop" />
-
-    <ImageView
-        android:id="@+id/walkingView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/temp_description"
-        android:maxHeight="50dp"
-        android:maxWidth="175dp"
-        android:minHeight="50dp"
-        android:minWidth="175dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/walking"
-        android:visibility="invisible" />
-
-    <ImageView
-        android:id="@+id/carView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/temp_description"
-        android:maxHeight="50dp"
-        android:maxWidth="175dp"
-        android:minHeight="50dp"
-        android:minWidth="175dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/car"
-        android:visibility="invisible" />
-
-    <ImageView
-        android:id="@+id/trainView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/temp_description"
-        android:maxHeight="50dp"
-        android:maxWidth="175dp"
-        android:minHeight="50dp"
-        android:minWidth="175dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/train"
-        android:visibility="invisible" />
-
-    <ImageView
-        android:id="@+id/idleView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/temp_description"
-        android:maxHeight="50dp"
-        android:maxWidth="175dp"
-        android:minHeight="50dp"
-        android:minWidth="175dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/idle"
-        android:visibility="invisible" />
 
     <ImageView
         android:id="@+id/noneView"
