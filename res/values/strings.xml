@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WAID Profiler</string>
+    <string name="action_settings">Settings</string>
+    <string name="fragment_listener_title">Listener</string>
+    <string name="fragment_profiles_title">Profiles</string>
+    <string name="listener_service_label">Listener Service</string>
+    <string name="temp_description">temp</string>
+    <string name="listener_start">Start</string>
+    <string name="listener_stop">Stop</string>
+    <string name="history_empty">No evaluation yet</string>
+    <string name="listener_service_started">Listener service started</string>
+    <string name="listener_service_stopped">Listener service stopped</string>
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+</resources>
