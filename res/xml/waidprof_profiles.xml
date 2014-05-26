@@ -1,23 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <PreferenceScreen
-        android:title="@string/walking">
-        
-    </PreferenceScreen>
-    
-    <PreferenceScreen
-        android:title="@string/car">
-        
-    </PreferenceScreen>
-    
-    <PreferenceScreen
-        android:title="@string/train">
-        
-    </PreferenceScreen>
-    
-    <PreferenceScreen
-        android:title="@string/idle">
-        
-    </PreferenceScreen>
+
+    <PreferenceCategory android:title="@string/settings_profiles_title" >
+        <PreferenceScreen
+            android:key="profile_walking"
+            android:title="@string/walking" >
+            <CheckBoxPreference 
+                android:key="walking_pref_bluetooth"
+                android:title="@string/pref_bluetooth"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="walking_pref_wifi"
+                android:title="@string/pref_wifi"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="walking_pref_speakerphone"
+                android:title="@string/pref_speakerphone"
+                android:defaultValue="false"/>
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="profile_car"
+            android:title="@string/car" >
+            <CheckBoxPreference 
+                android:key="car_pref_bluetooth"
+                android:title="@string/pref_bluetooth"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="car_pref_wifi"
+                android:title="@string/pref_wifi"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="car_pref_speakerphone"
+                android:title="@string/pref_speakerphone"
+                android:defaultValue="false"/>
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="profile_train"
+            android:title="@string/train" >
+            <CheckBoxPreference 
+                android:key="train_pref_bluetooth"
+                android:title="@string/pref_bluetooth"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="train_pref_wifi"
+                android:title="@string/pref_wifi"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="train_pref_speakerphone"
+                android:title="@string/pref_speakerphone"
+                android:defaultValue="false"/>
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="profile_idle"
+            android:title="@string/idle" >
+            <CheckBoxPreference 
+                android:key="idle_pref_bluetooth"
+                android:title="@string/pref_bluetooth"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="idle_pref_wifi"
+                android:title="@string/pref_wifi"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
+                android:key="idle_pref_speakerphone"
+                android:title="@string/pref_speakerphone"
+                android:defaultValue="false"/>
+        </PreferenceScreen>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/settings_behaviour_title" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:summary="@string/settings_restore_state_desc"
+            android:title="@string/settings_restore_state_title" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
 
 </PreferenceScreen>

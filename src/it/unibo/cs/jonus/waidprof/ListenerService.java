@@ -158,5 +158,9 @@ public class ListenerService extends Service {
 			evaluationsObserver = null;
 		}
 	}
+	
+	private void updateDeviceState(String evaluation) {
+		// TODO
+	}
 
 }
