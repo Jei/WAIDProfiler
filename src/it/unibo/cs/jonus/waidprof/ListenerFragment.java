@@ -15,8 +15,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -42,6 +43,7 @@ public class ListenerFragment extends Fragment {
 	private Button stopServiceButton;
 	// UI variables
 	private String currentClassification;
+	private boolean newClassification = false;
 
 	// Service variables
 	private boolean mBound = false;
@@ -65,8 +67,17 @@ public class ListenerFragment extends Fragment {
 
 				@Override
 				public void sendCurrentEvaluation(Evaluation evaluation) {
-					// Update the UI
-					updateVehicleImage(evaluation.getCategory());
+					// Check if we know this vehicle
+					String vehicle = evaluation.getCategory();
+					if (vehicleViewsMap.containsKey(vehicle)) {
+						updateVehicleImage(vehicle);
+						currentClassification = vehicle;
+						newClassification = false;
+					} else {
+						updateVehicleImage("none");
+						currentClassification = vehicle;
+						newClassification = true;
+					}
 				}
 
 			});
@@ -162,6 +173,7 @@ public class ListenerFragment extends Fragment {
 				ListenerService.KEY_SERVICE_ISRUNNING, false);
 
 		if (isServiceRunning && !mBound) {
+			Log.v("ListenerFragment", "Reconnecting to service");
 			// Bind to the running service
 			Intent intent = new Intent(getActivity(), ListenerService.class);
 			getActivity().bindService(intent, mConnection,
@@ -219,6 +231,7 @@ public class ListenerFragment extends Fragment {
 		if (isServiceRunning) {
 			// Unbind from the service and stop it
 			getActivity().unbindService(mConnection);
+			mBound = false;
 			Intent intent = new Intent(getActivity(), ListenerService.class);
 			getActivity().stopService(intent);
 
@@ -253,15 +266,12 @@ public class ListenerFragment extends Fragment {
 	}
 
 	private void updateVehicleImage(String vehicle) {
-		if (!currentClassification.equals(vehicle)) {
-			// Hide the previous image, show the new one
-			ImageView viewToHide = vehicleViewsMap.get(currentClassification);
-			viewToHide.setVisibility(View.INVISIBLE);
-			ImageView viewToShow = vehicleViewsMap.get(vehicle);
-			viewToShow.setVisibility(View.VISIBLE);
+		// Hide the previous image, show the new one
+		ImageView viewToHide = vehicleViewsMap.get(currentClassification);
+		viewToHide.setVisibility(View.INVISIBLE);
+		ImageView viewToShow = vehicleViewsMap.get(vehicle);
+		viewToShow.setVisibility(View.VISIBLE);
 
-			currentClassification = vehicle;
-		}
 	}
 
 	private int dpToPx(int dp) {

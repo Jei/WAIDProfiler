@@ -12,6 +12,10 @@
     <string name="history_empty">No evaluation yet</string>
     <string name="listener_service_started">Listener service started</string>
     <string name="listener_service_stopped">Listener service stopped</string>
+    <string name="walking">Walking</string>
+    <string name="car">Car</string>
+    <string name="train">Train</string>
+    <string name="idle">Idle</string>
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>

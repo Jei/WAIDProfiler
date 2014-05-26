@@ -3,13 +3,12 @@ package it.unibo.cs.jonus.waidprof;
 import java.util.Locale;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -19,7 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class ProfilerActivity extends FragmentActivity implements
+public class ProfilerActivity extends Activity implements
 		ActionBar.TabListener {
 
 	/**
@@ -49,7 +48,7 @@ public class ProfilerActivity extends FragmentActivity implements
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
-				getSupportFragmentManager());
+				getFragmentManager());
 
 		// Set up the ViewPager with the sections adapter.
 		mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -116,9 +115,17 @@ public class ProfilerActivity extends FragmentActivity implements
 		@Override
 		public Fragment getItem(int position) {
 			// getItem is called to instantiate the fragment for the given page.
-			// Return a DummySectionFragment (defined as a static inner class
-			// below) with the page number as its lone argument.
-			Fragment fragment = new ListenerFragment();
+			Fragment fragment = null;
+			switch (position) {
+			case 0:
+				fragment = new ListenerFragment();
+				break;
+			case 1:
+				fragment = new ProfilesFragment();
+				break;
+			default:
+				fragment = new ListenerFragment();
+			}
 
 			return fragment;
 		}
@@ -134,9 +141,11 @@ public class ProfilerActivity extends FragmentActivity implements
 			Locale l = Locale.getDefault();
 			switch (position) {
 			case 0:
-				return getString(R.string.fragment_listener_title).toUpperCase(l);
+				return getString(R.string.fragment_listener_title).toUpperCase(
+						l);
 			case 1:
-				return getString(R.string.fragment_profiles_title).toUpperCase(l);
+				return getString(R.string.fragment_profiles_title).toUpperCase(
+						l);
 			}
 			return null;
 		}

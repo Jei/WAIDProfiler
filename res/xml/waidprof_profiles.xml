@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceScreen
+        android:title="@string/walking">
+        
+    </PreferenceScreen>
+    
+    <PreferenceScreen
+        android:title="@string/car">
+        
+    </PreferenceScreen>
+    
+    <PreferenceScreen
+        android:title="@string/train">
+        
+    </PreferenceScreen>
+    
+    <PreferenceScreen
+        android:title="@string/idle">
+        
+    </PreferenceScreen>
+
+</PreferenceScreen>
