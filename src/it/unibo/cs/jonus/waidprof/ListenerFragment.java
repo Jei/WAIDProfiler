@@ -43,7 +43,7 @@ public class ListenerFragment extends Fragment {
 	private Button stopServiceButton;
 	// UI variables
 	private String currentClassification;
-	private boolean newClassification = false;
+	private String newVehicle;
 
 	// Service variables
 	private boolean mBound = false;
@@ -70,13 +70,21 @@ public class ListenerFragment extends Fragment {
 					// Check if we know this vehicle
 					String vehicle = evaluation.getCategory();
 					if (vehicleViewsMap.containsKey(vehicle)) {
+						newVehicle = vehicle;
+					} else {
+						newVehicle = vehicle;
+					}
+					// TODO add this classification to the listview
+				}
+
+				@Override
+				public void sendPredictedVehicle(String vehicle) {
+					if (vehicleViewsMap.containsKey(vehicle)) {
 						updateVehicleImage(vehicle);
 						currentClassification = vehicle;
-						newClassification = false;
 					} else {
 						updateVehicleImage("none");
 						currentClassification = vehicle;
-						newClassification = true;
 					}
 				}
 
@@ -244,6 +252,7 @@ public class ListenerFragment extends Fragment {
 
 			// Show the image for "none"
 			updateVehicleImage("none");
+			currentClassification = "none";
 		}
 	}
 
