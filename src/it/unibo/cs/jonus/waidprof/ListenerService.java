@@ -4,12 +4,15 @@
 package it.unibo.cs.jonus.waidprof;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.media.AudioManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -42,6 +45,11 @@ public class ListenerService extends Service {
 	private Handler handler = new Handler();
 	private EvaluationsContentObserver evaluationsObserver = null;
 	private Evaluation lastEvaluation = null;
+
+	// Android managers
+	private WifiManager wifiManager;
+	private AudioManager audioManager;
+	private BluetoothAdapter bluetoothAdapter;
 
 	SharedPreferences sharedPrefs;
 
@@ -78,6 +86,9 @@ public class ListenerService extends Service {
 			// Send the new evaluation to the listening activities.
 			if (mListener != null) {
 				mListener.sendCurrentEvaluation(lastEvaluation);
+				// FIXME
+				mListener.sendPredictedVehicle(lastEvaluation.getCategory());
+				updateDeviceState(lastEvaluation.getCategory());
 			}
 		}
 
@@ -122,6 +133,11 @@ public class ListenerService extends Service {
 		// Persist the service state in the shared preferences
 		sharedPrefs.edit().putBoolean(KEY_SERVICE_ISRUNNING, true).commit();
 
+		// Get default managers
+		wifiManager = (WifiManager) this.getSystemService(WIFI_SERVICE);
+		audioManager = (AudioManager) this.getSystemService(AUDIO_SERVICE);
+		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
 		// Register the content observer
 		registerContentObserver();
 
@@ -158,9 +174,36 @@ public class ListenerService extends Service {
 			evaluationsObserver = null;
 		}
 	}
-	
-	private void updateDeviceState(String evaluation) {
-		// TODO
-	}
 
+	/**
+	 * Changes the state of wi-fi, bluetooth and speakerphone according to the
+	 * settings for the specified vehicle
+	 * 
+	 * @param the
+	 *            vehicle
+	 */
+	private void updateDeviceState(String vehicle) {
+		// Get the preferences for this vehicle
+		boolean wifiState = sharedPrefs.getBoolean(vehicle + "_pref_wifi",
+				false);
+		boolean bluetoothState = sharedPrefs.getBoolean(vehicle
+				+ "_pref_bluetooth", false);
+		boolean speakerphoneState = sharedPrefs.getBoolean(vehicle
+				+ "_pref_speakerphone", false);
+
+		// Update the state
+		if (wifiManager != null) {
+			wifiManager.setWifiEnabled(wifiState);
+		}
+		if (audioManager != null) {
+			audioManager.setSpeakerphoneOn(speakerphoneState);
+		}
+		if (bluetoothAdapter != null) {
+			if (bluetoothState) {
+				bluetoothAdapter.enable();
+			} else {
+				bluetoothAdapter.disable();
+			}
+		}
+	}
 }
