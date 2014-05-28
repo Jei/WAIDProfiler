@@ -20,9 +20,13 @@
     <string name="settings_profiles_title">Profiles</string>
     <string name="settings_restore_state_title">Restore previous state</string>
     <string name="settings_restore_state_desc">Restore the previous state of the device when the service stops</string>
+    <string name="settings_history_length_title">History Length</string>
+    <string name="settings_history_length_desc">The number of evaluations from which to calculate the current vehicle</string>
 	<string name="pref_bluetooth">Bluetooth</string>
 	<string name="pref_speakerphone">Speakerphone</string>
 	<string name="pref_wifi">Wi-Fi</string>
+	<string name="history_length_max_amount">Maximum length limited to </string>
+	<string name="history_length_min_amount">Minimum length limited to </string>
     
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
