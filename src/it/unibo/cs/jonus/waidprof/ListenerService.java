@@ -306,11 +306,15 @@ public class ListenerService extends Service {
 	 */
 	private void restoreInitialState() {
 		// Wi-Fi
-		wifiManager.setWifiEnabled(sharedPrefs.getBoolean(
-				KEY_PREVIOUS_STATE_WIFI, false));
+		if (wifiManager != null) {
+			wifiManager.setWifiEnabled(sharedPrefs.getBoolean(
+					KEY_PREVIOUS_STATE_WIFI, false));
+		}
 		// Speakerphone
-		audioManager.setSpeakerphoneOn(sharedPrefs.getBoolean(
-				KEY_PREVIOUS_STATE_SPEAKERPHONE, false));
+		if (audioManager != null) {
+			audioManager.setSpeakerphoneOn(sharedPrefs.getBoolean(
+					KEY_PREVIOUS_STATE_SPEAKERPHONE, false));
+		}
 		// Bluetooth
 		if (bluetoothAdapter != null) {
 			if (sharedPrefs.getBoolean(KEY_PREVIOUS_STATE_BLUETOOTH, false)) {
