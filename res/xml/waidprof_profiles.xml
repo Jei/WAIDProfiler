@@ -6,65 +6,93 @@
             android:key="profile_walking"
             android:title="@string/walking" >
             <CheckBoxPreference 
+                android:key="walking_pref_enabled"
+                android:title="@string/pref_enabled"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
                 android:key="walking_pref_bluetooth"
                 android:title="@string/pref_bluetooth"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="walking_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="walking_pref_wifi"
                 android:title="@string/pref_wifi"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="walking_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="walking_pref_speakerphone"
                 android:title="@string/pref_speakerphone"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="walking_pref_enabled"/>
         </PreferenceScreen>
         <PreferenceScreen
             android:key="profile_car"
             android:title="@string/car" >
             <CheckBoxPreference 
+                android:key="car_pref_enabled"
+                android:title="@string/pref_enabled"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
                 android:key="car_pref_bluetooth"
                 android:title="@string/pref_bluetooth"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="car_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="car_pref_wifi"
                 android:title="@string/pref_wifi"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="car_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="car_pref_speakerphone"
                 android:title="@string/pref_speakerphone"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="car_pref_enabled"/>
         </PreferenceScreen>
         <PreferenceScreen
             android:key="profile_train"
             android:title="@string/train" >
             <CheckBoxPreference 
+                android:key="train_pref_enabled"
+                android:title="@string/pref_enabled"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
                 android:key="train_pref_bluetooth"
                 android:title="@string/pref_bluetooth"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="train_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="train_pref_wifi"
                 android:title="@string/pref_wifi"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="train_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="train_pref_speakerphone"
                 android:title="@string/pref_speakerphone"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="train_pref_enabled"/>
         </PreferenceScreen>
         <PreferenceScreen
             android:key="profile_idle"
             android:title="@string/idle" >
             <CheckBoxPreference 
+                android:key="idle_pref_enabled"
+                android:title="@string/pref_enabled"
+                android:defaultValue="false"/>
+            <CheckBoxPreference 
                 android:key="idle_pref_bluetooth"
                 android:title="@string/pref_bluetooth"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="idle_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="idle_pref_wifi"
                 android:title="@string/pref_wifi"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="idle_pref_enabled"/>
             <CheckBoxPreference 
                 android:key="idle_pref_speakerphone"
                 android:title="@string/pref_speakerphone"
-                android:defaultValue="false"/>
+                android:defaultValue="false"
+                android:dependency="idle_pref_enabled"/>
         </PreferenceScreen>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_behaviour_title" >

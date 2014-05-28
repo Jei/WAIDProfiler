@@ -212,6 +212,8 @@ public class ListenerService extends Service {
 	 */
 	private void updateDeviceState(String vehicle) {
 		// Get the preferences for this vehicle
+		boolean enabled = sharedPrefs.getBoolean(vehicle
+				+ ProfilesFragment.SUFFIX_PREF_ENABLED, false);
 		boolean wifiState = sharedPrefs.getBoolean(vehicle
 				+ ProfilesFragment.SUFFIX_PREF_WIFI, false);
 		boolean bluetoothState = sharedPrefs.getBoolean(vehicle
@@ -219,18 +221,20 @@ public class ListenerService extends Service {
 		boolean speakerphoneState = sharedPrefs.getBoolean(vehicle
 				+ ProfilesFragment.SUFFIX_PREF_SPEAKERPHONE, false);
 
-		// Update the state
-		if (wifiManager != null) {
-			wifiManager.setWifiEnabled(wifiState);
-		}
-		if (audioManager != null) {
-			audioManager.setSpeakerphoneOn(speakerphoneState);
-		}
-		if (bluetoothAdapter != null) {
-			if (bluetoothState) {
-				bluetoothAdapter.enable();
-			} else {
-				bluetoothAdapter.disable();
+		if (enabled) {
+			// Update the state
+			if (wifiManager != null) {
+				wifiManager.setWifiEnabled(wifiState);
+			}
+			if (audioManager != null) {
+				audioManager.setSpeakerphoneOn(speakerphoneState);
+			}
+			if (bluetoothAdapter != null) {
+				if (bluetoothState) {
+					bluetoothAdapter.enable();
+				} else {
+					bluetoothAdapter.disable();
+				}
 			}
 		}
 	}

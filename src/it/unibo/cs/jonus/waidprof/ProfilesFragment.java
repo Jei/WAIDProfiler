@@ -22,6 +22,7 @@ public class ProfilesFragment extends PreferenceFragment implements
 	public static final String SUFFIX_PREF_WIFI = "_pref_wifi";
 	public static final String SUFFIX_PREF_BLUETOOTH = "_pref_bluetooth";
 	public static final String SUFFIX_PREF_SPEAKERPHONE = "_pref_speakerphone";
+	public static final String SUFFIX_PREF_ENABLED = "_pref_enabled";
 	private static final int MAX_HISTORY_LENGTH = 50;
 	private static final int MIN_HISTORY_LENGTH = 1;
 

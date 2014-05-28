@@ -25,6 +25,7 @@
 	<string name="pref_bluetooth">Bluetooth</string>
 	<string name="pref_speakerphone">Speakerphone</string>
 	<string name="pref_wifi">Wi-Fi</string>
+	<string name="pref_enabled">Enable Vehicle</string>
 	<string name="history_length_max_amount">Maximum length limited to </string>
 	<string name="history_length_min_amount">Minimum length limited to </string>
     
