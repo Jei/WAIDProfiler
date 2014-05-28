@@ -5,14 +5,22 @@ package it.unibo.cs.jonus.waidprof;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -51,13 +59,18 @@ public class ListenerService extends Service {
 	private Handler handler = new Handler();
 	private EvaluationsContentObserver evaluationsObserver = null;
 	private ArrayList<Evaluation> evaluationList;
+	private String lastMrVehicle;
 
 	// Android managers
 	private WifiManager wifiManager;
 	private AudioManager audioManager;
 	private BluetoothAdapter bluetoothAdapter;
+	private NotificationManager notificationManager;
 
 	SharedPreferences sharedPrefs;
+
+	private Map<String, Integer> vehicleImagesMap;
+	private Map<String, Bitmap> vehicleIconsMap;
 
 	/**
 	 * Class used to listen to changes in the Evaluations Content Provider
@@ -108,6 +121,12 @@ public class ListenerService extends Service {
 
 			// Update the state of the device
 			updateDeviceState(mrVehicle);
+
+			// Show a notification of the current mode
+			if (!mrVehicle.equals(lastMrVehicle)) {
+				showVehicleNotification(mrVehicle);
+				lastMrVehicle = mrVehicle;
+			}
 		}
 
 	}
@@ -157,12 +176,35 @@ public class ListenerService extends Service {
 		wifiManager = (WifiManager) this.getSystemService(WIFI_SERVICE);
 		audioManager = (AudioManager) this.getSystemService(AUDIO_SERVICE);
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		notificationManager = (NotificationManager) this
+				.getSystemService(NOTIFICATION_SERVICE);
 
 		// Save the initial state of the device
 		saveInitialState();
 
 		// Register the content observer
 		registerContentObserver();
+
+		// TODO Map of images and icons
+		vehicleImagesMap = new HashMap<String, Integer>();
+		vehicleIconsMap = new HashMap<String, Bitmap>();
+		vehicleImagesMap.put("none", R.drawable.none);
+		vehicleImagesMap.put("walking", R.drawable.walking);
+		vehicleImagesMap.put("car", R.drawable.car);
+		vehicleImagesMap.put("train", R.drawable.train);
+		vehicleImagesMap.put("idle", R.drawable.idle);
+		for (Map.Entry<String, Integer> entry : vehicleImagesMap.entrySet()) {
+			int iconId = entry.getValue();
+			Bitmap vehicleIcon = BitmapFactory.decodeResource(getResources(),
+					iconId);
+			vehicleIcon = scale(vehicleIcon);
+			vehicleIcon = invert(vehicleIcon);
+			
+			vehicleIconsMap.put(entry.getKey(), vehicleIcon);
+		}
+		
+
+		lastMrVehicle = "none";
 
 		Toast.makeText(getApplicationContext(),
 				getText(R.string.listener_service_started), Toast.LENGTH_SHORT)
@@ -182,6 +224,9 @@ public class ListenerService extends Service {
 
 		// Persist the service state in the shared preferences
 		sharedPrefs.edit().putBoolean(KEY_SERVICE_ISRUNNING, false).commit();
+
+		// Hide the notification for the vehicle mode
+		hideVehicleNotification();
 
 		Toast.makeText(getApplicationContext(),
 				getText(R.string.listener_service_stopped), Toast.LENGTH_SHORT)
@@ -327,5 +372,86 @@ public class ListenerService extends Service {
 				bluetoothAdapter.disable();
 			}
 		}
+	}
+
+	/**
+	 * Show a notification for the given vehicle
+	 * 
+	 * @param textId
+	 * @param vehicle
+	 */
+	private void showVehicleNotification(String vehicle) {
+		// Hide the previous notification
+		notificationManager.cancel(R.string.notification_mode_vehicle);
+
+		CharSequence text = getText(R.string.notification_mode_vehicle)
+				+ vehicle;
+		CharSequence title = getText(R.string.listener_service_label);
+
+		// Create a pending intent to open the activity
+		Intent profilerIntent = new Intent(this, ProfilerActivity.class);
+		profilerIntent.setAction(Intent.ACTION_MAIN);
+		profilerIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				profilerIntent, 0);
+
+		Bitmap vehicleIcon = vehicleIconsMap.get(vehicle);
+
+		// Build the notification
+		@SuppressWarnings("deprecation")
+		Notification notification = new Notification.Builder(this)
+				.setSmallIcon(R.drawable.ic_launcher).setLargeIcon(vehicleIcon)
+				.setContentText(text).setContentTitle(title)
+				.setContentIntent(contentIntent).setAutoCancel(false)
+				.setOngoing(true).getNotification();
+
+		// Send the notification
+		notificationManager.notify(R.string.notification_mode_vehicle,
+				notification);
+	}
+
+	/**
+	 * Hide the notification for the vehicle mode
+	 * 
+	 * @param textId
+	 */
+	private void hideVehicleNotification() {
+		notificationManager.cancel(R.string.notification_mode_vehicle);
+	}
+
+	// XXX do i need this?
+	public static Bitmap invert(Bitmap src) {
+		Bitmap output = Bitmap.createBitmap(src.getWidth(), src.getHeight(),
+				src.getConfig());
+		int A, R, G, B;
+		int pixelColor;
+		int height = src.getHeight();
+		int width = src.getWidth();
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				pixelColor = src.getPixel(x, y);
+				A = Color.alpha(pixelColor);
+
+				R = 255 - Color.red(pixelColor);
+				G = 255 - Color.green(pixelColor);
+				B = 255 - Color.blue(pixelColor);
+
+				output.setPixel(x, y, Color.argb(A, R, G, B));
+			}
+		}
+
+		return output;
+	}
+
+	// XXX do i need this?
+	public static Bitmap scale(Bitmap src) {
+		int height = Resources.getSystem().getDimensionPixelSize(
+				android.R.dimen.notification_large_icon_height);
+		int width = Resources.getSystem().getDimensionPixelSize(
+				android.R.dimen.notification_large_icon_width);
+		Bitmap output = Bitmap.createScaledBitmap(src, height, width, false);
+
+		return output;
 	}
 }
