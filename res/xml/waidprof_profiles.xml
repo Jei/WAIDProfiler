@@ -69,10 +69,18 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_behaviour_title" >
         <CheckBoxPreference
+            android:key="pref_restore_state"
             android:defaultValue="true"
             android:summary="@string/settings_restore_state_desc"
             android:title="@string/settings_restore_state_title" >
         </CheckBoxPreference>
+        <EditTextPreference
+            android:key="pref_history_length"
+            android:defaultValue="10"
+            android:summary="@string/settings_history_length_desc"
+            android:title="@string/settings_history_length_title"
+            android:inputType="number" >
+        </EditTextPreference>
     </PreferenceCategory>
 
 </PreferenceScreen>
