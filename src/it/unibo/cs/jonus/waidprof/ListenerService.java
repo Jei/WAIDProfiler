@@ -3,6 +3,9 @@
  */
 package it.unibo.cs.jonus.waidprof;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
@@ -26,6 +29,9 @@ import android.widget.Toast;
 public class ListenerService extends Service {
 
 	public static final String KEY_SERVICE_ISRUNNING = "listener_isrunning";
+	public static final String KEY_PREVIOUS_STATE_WIFI = "previous_state_wifi";
+	public static final String KEY_PREVIOUS_STATE_BLUETOOTH = "previous_state_bluetooth";
+	public static final String KEY_PREVIOUS_STATE_SPEAKERPHONE = "previous_state_speakerphone";
 
 	// Constants used to read Content Provider
 	private static final String AUTHORITY = "it.unibo.cs.jonus.waidrec.evaluationsprovider";
@@ -44,7 +50,7 @@ public class ListenerService extends Service {
 	// Content Observer variables
 	private Handler handler = new Handler();
 	private EvaluationsContentObserver evaluationsObserver = null;
-	private Evaluation lastEvaluation = null;
+	private ArrayList<Evaluation> evaluationList;
 
 	// Android managers
 	private WifiManager wifiManager;
@@ -81,15 +87,27 @@ public class ListenerService extends Service {
 					.getColumnIndexOrThrow(EVALUATION_COLUMN_CATEGORY));
 			long timestamp = cursor.getLong(cursor
 					.getColumnIndexOrThrow(EVALUATION_COLUMN_TIMESTAMP));
-			lastEvaluation = new Evaluation(id, timestamp, category);
+			// Insert the evaluation in the evaluations array
+			Evaluation newEvaluation = new Evaluation(id, timestamp, category);
+			evaluationList.add(newEvaluation);
+			// Trim the array if needed
+			String historyLengthString = sharedPrefs.getString(
+					ProfilesFragment.KEY_PREF_HISTORY_LENGTH, "10");
+			int historyLength = Integer.parseInt(historyLengthString);
+			while (evaluationList.size() > historyLength) {
+				evaluationList.remove(0);
+			}
+			// Get the most recurring vehicle in the history
+			String mrVehicle = getMostRecurringVehicle();
 
 			// Send the new evaluation to the listening activities.
 			if (mListener != null) {
-				mListener.sendCurrentEvaluation(lastEvaluation);
-				// FIXME
-				mListener.sendPredictedVehicle(lastEvaluation.getCategory());
-				updateDeviceState(lastEvaluation.getCategory());
+				mListener.sendCurrentEvaluation(newEvaluation);
+				mListener.sendPredictedVehicle(mrVehicle);
 			}
+
+			// Update the state of the device
+			updateDeviceState(mrVehicle);
 		}
 
 	}
@@ -127,6 +145,8 @@ public class ListenerService extends Service {
 	public void onCreate() {
 		super.onCreate();
 
+		evaluationList = new ArrayList<Evaluation>();
+
 		// Get shared preferences
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -137,6 +157,9 @@ public class ListenerService extends Service {
 		wifiManager = (WifiManager) this.getSystemService(WIFI_SERVICE);
 		audioManager = (AudioManager) this.getSystemService(AUDIO_SERVICE);
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+		// Save the initial state of the device
+		saveInitialState();
 
 		// Register the content observer
 		registerContentObserver();
@@ -150,6 +173,12 @@ public class ListenerService extends Service {
 	public void onDestroy() {
 		// Unregister the content observer
 		unregisterContentObserver();
+
+		// Restore the state of the device if the preference is set
+		if (sharedPrefs.getBoolean(ProfilesFragment.KEY_PREF_RESTORE_STATE,
+				true)) {
+			restoreInitialState();
+		}
 
 		// Persist the service state in the shared preferences
 		sharedPrefs.edit().putBoolean(KEY_SERVICE_ISRUNNING, false).commit();
@@ -179,17 +208,16 @@ public class ListenerService extends Service {
 	 * Changes the state of wi-fi, bluetooth and speakerphone according to the
 	 * settings for the specified vehicle
 	 * 
-	 * @param the
-	 *            vehicle
+	 * @param vehicle
 	 */
 	private void updateDeviceState(String vehicle) {
 		// Get the preferences for this vehicle
-		boolean wifiState = sharedPrefs.getBoolean(vehicle + "_pref_wifi",
-				false);
+		boolean wifiState = sharedPrefs.getBoolean(vehicle
+				+ ProfilesFragment.SUFFIX_PREF_WIFI, false);
 		boolean bluetoothState = sharedPrefs.getBoolean(vehicle
-				+ "_pref_bluetooth", false);
+				+ ProfilesFragment.SUFFIX_PREF_BLUETOOTH, false);
 		boolean speakerphoneState = sharedPrefs.getBoolean(vehicle
-				+ "_pref_speakerphone", false);
+				+ ProfilesFragment.SUFFIX_PREF_SPEAKERPHONE, false);
 
 		// Update the state
 		if (wifiManager != null) {
@@ -200,6 +228,92 @@ public class ListenerService extends Service {
 		}
 		if (bluetoothAdapter != null) {
 			if (bluetoothState) {
+				bluetoothAdapter.enable();
+			} else {
+				bluetoothAdapter.disable();
+			}
+		}
+	}
+
+	/**
+	 * Calculates the most recurring vehicle in the history
+	 * 
+	 * @return the most recurring vehicle
+	 */
+	private String getMostRecurringVehicle() {
+		String mrVehicle = null;
+
+		// Get the history length from the shared preferences
+		String historyLengthString = sharedPrefs.getString(
+				ProfilesFragment.KEY_PREF_HISTORY_LENGTH, "10");
+		int historyLength = Integer.parseInt(historyLengthString);
+
+		HashMap<String, Integer> vehicleMap = new HashMap<String, Integer>();
+		int maxNumber = 0;
+		// get mrVehicle from last evaluation, in case the history length is 0
+		mrVehicle = evaluationList.get(evaluationList.size() - 1).getCategory();
+		for (int i = 1; (i <= evaluationList.size()) && (i <= historyLength); i++) {
+			// get the list elements starting from the most recent
+			String vehicle = evaluationList.get(evaluationList.size() - i)
+					.getCategory();
+			// if the map doesn't contain this vehicle yet, create the key
+			if (!vehicleMap.containsKey(vehicle)) {
+				vehicleMap.put(vehicle, 0);
+			}
+			// get the number of recurrences from this vehicle and increment it
+			int newCount = vehicleMap.get(vehicle) + 1;
+			vehicleMap.put(vehicle, newCount);
+			// check if the count for this vehicle is the new maximum
+			if (newCount > maxNumber) {
+				maxNumber = newCount;
+				mrVehicle = vehicle;
+			}
+		}
+
+		return mrVehicle;
+	}
+
+	/**
+	 * Saves the state of the device prior to service run to the shared
+	 * preferences
+	 */
+	private void saveInitialState() {
+		// Wi-Fi
+		if ((wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED)
+				|| (wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLING)) {
+			sharedPrefs.edit().putBoolean(KEY_PREVIOUS_STATE_WIFI, true)
+					.commit();
+		} else {
+			sharedPrefs.edit().putBoolean(KEY_PREVIOUS_STATE_WIFI, false)
+					.commit();
+		}
+		// Speakerphone
+		sharedPrefs
+				.edit()
+				.putBoolean(KEY_PREVIOUS_STATE_SPEAKERPHONE,
+						audioManager.isSpeakerphoneOn()).commit();
+		// Bluetooth
+		if (bluetoothAdapter != null) {
+			sharedPrefs
+					.edit()
+					.putBoolean(KEY_PREVIOUS_STATE_BLUETOOTH,
+							bluetoothAdapter.isEnabled()).commit();
+		}
+	}
+
+	/**
+	 * Loads the previous state of the device from the shared preferences
+	 */
+	private void restoreInitialState() {
+		// Wi-Fi
+		wifiManager.setWifiEnabled(sharedPrefs.getBoolean(
+				KEY_PREVIOUS_STATE_WIFI, false));
+		// Speakerphone
+		audioManager.setSpeakerphoneOn(sharedPrefs.getBoolean(
+				KEY_PREVIOUS_STATE_SPEAKERPHONE, false));
+		// Bluetooth
+		if (bluetoothAdapter != null) {
+			if (sharedPrefs.getBoolean(KEY_PREVIOUS_STATE_BLUETOOTH, false)) {
 				bluetoothAdapter.enable();
 			} else {
 				bluetoothAdapter.disable();
