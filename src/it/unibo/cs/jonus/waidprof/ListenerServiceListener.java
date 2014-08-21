@@ -9,7 +9,7 @@ package it.unibo.cs.jonus.waidprof;
  */
 public interface ListenerServiceListener {
 	
-	public void sendCurrentEvaluation(Evaluation evaluation);
+	public void sendCurrentEvaluation(VehicleInstance evaluation);
 	
 	public void sendPredictedVehicle(String vehicle);
 

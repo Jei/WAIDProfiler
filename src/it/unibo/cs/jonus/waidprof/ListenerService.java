@@ -19,7 +19,6 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -41,24 +40,14 @@ public class ListenerService extends Service {
 	public static final String KEY_PREVIOUS_STATE_BLUETOOTH = "previous_state_bluetooth";
 	public static final String KEY_PREVIOUS_STATE_SPEAKERPHONE = "previous_state_speakerphone";
 
-	// Constants used to read Content Provider
-	private static final String AUTHORITY = "it.unibo.cs.jonus.waidrec.evaluationsprovider";
-	private static final String BASE_PATH = "evaluations";
-	private static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
-			+ "/" + BASE_PATH);
-	private static final String LAST_EVALUATION_PATH = "/last";
-	private static final String EVALUATION_COLUMN_ID = "_id";
-	private static final String EVALUATION_COLUMN_CATEGORY = "category";
-	private static final String EVALUATION_COLUMN_TIMESTAMP = "timestamp";
-
 	// Service binding variables
 	private ListenerServiceListener mListener = null;
 	private final IBinder mBinder = new ListenerServiceBinder();
 
 	// Content Observer variables
 	private Handler handler = new Handler();
-	private EvaluationsContentObserver evaluationsObserver = null;
-	private ArrayList<Evaluation> evaluationList;
+	private VehicleInstancesContentObserver evaluationsObserver = null;
+	private ArrayList<VehicleInstance> evaluationList;
 	private String lastMrVehicle;
 
 	// Android managers
@@ -69,15 +58,14 @@ public class ListenerService extends Service {
 
 	SharedPreferences sharedPrefs;
 
-	private Map<String, Integer> vehicleImagesMap;
-	private Map<String, Bitmap> vehicleIconsMap;
+	private Map<String, Bitmap> vehicleMiniaturesMap = new HashMap<String, Bitmap>();
 
 	/**
-	 * Class used to listen to changes in the Evaluations Content Provider
+	 * Class used to listen to changes in the VehicleInstances Content Provider
 	 */
-	class EvaluationsContentObserver extends ContentObserver {
+	class VehicleInstancesContentObserver extends ContentObserver {
 
-		public EvaluationsContentObserver(Handler handler) {
+		public VehicleInstancesContentObserver(Handler handler) {
 			super(handler);
 		}
 
@@ -85,24 +73,20 @@ public class ListenerService extends Service {
 			super.onChange(selfChange);
 
 			// Get the last evaluation from the Content Provider
-			String[] projection = { EVALUATION_COLUMN_ID,
-					EVALUATION_COLUMN_TIMESTAMP, EVALUATION_COLUMN_CATEGORY };
-			Uri uri = Uri.parse(CONTENT_URI + LAST_EVALUATION_PATH);
-			Cursor cursor = getContentResolver().query(uri, projection, null,
-					null, null);
+			Uri uri = Uri.parse(ProfilerActivity.EVALUATIONS_URI
+					+ ProfilerActivity.PATH_LAST_EVALUATION);
+			Cursor cursor = getContentResolver().query(uri,
+					ProfilerActivity.EvaluationColumnsProjection, null, null,
+					null);
 			if (cursor == null) {
 				return;
 			}
-			cursor.moveToFirst();
-			long id = cursor.getLong(cursor
-					.getColumnIndexOrThrow(EVALUATION_COLUMN_ID));
-			String category = cursor.getString(cursor
-					.getColumnIndexOrThrow(EVALUATION_COLUMN_CATEGORY));
-			long timestamp = cursor.getLong(cursor
-					.getColumnIndexOrThrow(EVALUATION_COLUMN_TIMESTAMP));
 			// Insert the evaluation in the evaluations array
-			Evaluation newEvaluation = new Evaluation(id, timestamp, category);
-			evaluationList.add(newEvaluation);
+			cursor.moveToFirst();
+			VehicleInstance newVehicleInstance = ProfilerActivity
+					.cursorToVehicleInstance(cursor);
+			cursor.close();
+			evaluationList.add(newVehicleInstance);
 			// Trim the array if needed
 			String historyLengthString = sharedPrefs.getString(
 					ProfilesFragment.KEY_PREF_HISTORY_LENGTH, "10");
@@ -115,7 +99,7 @@ public class ListenerService extends Service {
 
 			// Send the new evaluation to the listening activities.
 			if (mListener != null) {
-				mListener.sendCurrentEvaluation(newEvaluation);
+				mListener.sendCurrentEvaluation(newVehicleInstance);
 				mListener.sendPredictedVehicle(mrVehicle);
 			}
 
@@ -164,7 +148,7 @@ public class ListenerService extends Service {
 	public void onCreate() {
 		super.onCreate();
 
-		evaluationList = new ArrayList<Evaluation>();
+		evaluationList = new ArrayList<VehicleInstance>();
 
 		// Get shared preferences
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -185,24 +169,14 @@ public class ListenerService extends Service {
 		// Register the content observer
 		registerContentObserver();
 
-		// TODO Map of images and icons
-		vehicleImagesMap = new HashMap<String, Integer>();
-		vehicleIconsMap = new HashMap<String, Bitmap>();
-		vehicleImagesMap.put("none", R.drawable.none);
-		vehicleImagesMap.put("walking", R.drawable.walking);
-		vehicleImagesMap.put("car", R.drawable.car);
-		vehicleImagesMap.put("train", R.drawable.train);
-		vehicleImagesMap.put("idle", R.drawable.idle);
-		for (Map.Entry<String, Integer> entry : vehicleImagesMap.entrySet()) {
-			int iconId = entry.getValue();
-			Bitmap vehicleIcon = BitmapFactory.decodeResource(getResources(),
-					iconId);
+		// Create the miniature icons for the vehicles
+		for (Map.Entry<String, Bitmap> entry : ProfilerActivity.sVehiclesMap.entrySet()) {
+			Bitmap vehicleIcon = entry.getValue();
 			vehicleIcon = scale(vehicleIcon);
 			vehicleIcon = invert(vehicleIcon);
-			
-			vehicleIconsMap.put(entry.getKey(), vehicleIcon);
+
+			vehicleMiniaturesMap.put(entry.getKey(), vehicleIcon);
 		}
-		
 
 		lastMrVehicle = "none";
 
@@ -237,8 +211,9 @@ public class ListenerService extends Service {
 
 	private void registerContentObserver() {
 		ContentResolver cr = getContentResolver();
-		evaluationsObserver = new EvaluationsContentObserver(handler);
-		cr.registerContentObserver(CONTENT_URI, true, evaluationsObserver);
+		evaluationsObserver = new VehicleInstancesContentObserver(handler);
+		cr.registerContentObserver(ProfilerActivity.EVALUATIONS_URI, true,
+				evaluationsObserver);
 	}
 
 	private void unregisterContentObserver() {
@@ -395,9 +370,10 @@ public class ListenerService extends Service {
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 				profilerIntent, 0);
 
-		Bitmap vehicleIcon = vehicleIconsMap.get(vehicle);
+		Bitmap vehicleIcon = vehicleMiniaturesMap.get(vehicle);
 
 		// Build the notification
+		// TODO create small icon
 		@SuppressWarnings("deprecation")
 		Notification notification = new Notification.Builder(this)
 				.setSmallIcon(R.drawable.ic_launcher).setLargeIcon(vehicleIcon)
@@ -454,4 +430,5 @@ public class ListenerService extends Service {
 
 		return output;
 	}
+
 }

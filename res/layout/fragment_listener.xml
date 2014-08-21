@@ -5,24 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/listenerStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:text="@string/listener_start" />
-
-    <Button
-        android:id="@+id/listenerStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/listenerStart"
-        android:text="@string/listener_stop" />
-
     <ImageView
-        android:id="@+id/noneView"
+        android:id="@+id/vehicleView"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
@@ -33,14 +17,28 @@
         android:minHeight="50dp"
         android:minWidth="175dp"
         android:scaleType="centerInside"
-        android:src="@drawable/none"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/onoffView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:contentDescription="@string/temp_description"
+        android:maxHeight="50dp"
+        android:maxWidth="175dp"
+        android:minHeight="50dp"
+        android:minWidth="175dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/onoff_00b0b0"
         android:visibility="invisible" />
 
     <ListView
         android:id="@+id/historyView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/noneView"
+        android:layout_below="@id/onoffView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:background="@color/black"
@@ -54,7 +52,7 @@
         android:id="@+id/emptyView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/noneView"
+        android:layout_below="@id/onoffView"
         android:paddingLeft="10dp"
         android:visibility="gone" >
 
