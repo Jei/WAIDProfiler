@@ -3,11 +3,19 @@
  */
 package it.unibo.cs.jonus.waidprof;
 
+import java.util.Map;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -17,8 +25,10 @@ import android.widget.Toast;
 public class ProfilesFragment extends PreferenceFragment implements
 		OnSharedPreferenceChangeListener {
 
+	public static final String KEY_CATEGORY_PROFILES = "category_profiles";
 	public static final String KEY_PREF_HISTORY_LENGTH = "pref_history_length";
 	public static final String KEY_PREF_RESTORE_STATE = "pref_restore_state";
+	public static final String PREFIX_PROFILE = "profile_";
 	public static final String SUFFIX_PREF_WIFI = "_pref_wifi";
 	public static final String SUFFIX_PREF_BLUETOOTH = "_pref_bluetooth";
 	public static final String SUFFIX_PREF_SPEAKERPHONE = "_pref_speakerphone";
@@ -34,13 +44,79 @@ public class ProfilesFragment extends PreferenceFragment implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Load the profiles preferences
+		// Load the application preferences
 		addPreferencesFromResource(R.xml.waidprof_profiles);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
+
+		// Recreate profiles screens
+		PreferenceManager prefManager = getPreferenceManager();
+		SharedPreferences prefs = prefManager.getSharedPreferences();
+		PreferenceCategory profilesCategory = (PreferenceCategory) findPreference(KEY_CATEGORY_PROFILES);
+		profilesCategory.removeAll();
+		
+		// Get the screens for all the vehicles
+		for (Map.Entry<String, Bitmap> entry : ProfilerActivity.sVehiclesMap
+				.entrySet()) {
+			String vehicle = entry.getKey();
+			String profileKey = PREFIX_PROFILE + vehicle;
+			PreferenceScreen prefScreen = prefManager
+					.createPreferenceScreen(getActivity());
+			prefScreen.setKey(profileKey);
+			prefScreen.setTitle(vehicle);
+
+			boolean enabled = prefs.getBoolean(vehicle + SUFFIX_PREF_ENABLED,
+					false);
+			boolean wifi = prefs.getBoolean(vehicle + SUFFIX_PREF_WIFI, false);
+			boolean bluetooth = prefs.getBoolean(vehicle
+					+ SUFFIX_PREF_BLUETOOTH, false);
+			boolean speaker = prefs.getBoolean(vehicle
+					+ SUFFIX_PREF_SPEAKERPHONE, false);
+
+			CheckBoxPreference enabledPref = new CheckBoxPreference(
+					getActivity());
+			CheckBoxPreference bluetoothPref = new CheckBoxPreference(
+					getActivity());
+			CheckBoxPreference speakerPref = new CheckBoxPreference(
+					getActivity());
+			CheckBoxPreference wifiPref = new CheckBoxPreference(getActivity());
+			// Enabled preference
+			enabledPref = new CheckBoxPreference(getActivity());
+			enabledPref.setKey(vehicle + SUFFIX_PREF_ENABLED);
+			enabledPref.setChecked(enabled);
+			enabledPref.setTitle(R.string.pref_enabled);
+			// Bluetooth preference
+			bluetoothPref = new CheckBoxPreference(getActivity());
+			bluetoothPref.setKey(vehicle + SUFFIX_PREF_BLUETOOTH);
+			bluetoothPref.setChecked(bluetooth);
+			bluetoothPref.setTitle(R.string.pref_bluetooth);
+			// Speakerphone preference
+			speakerPref = new CheckBoxPreference(getActivity());
+			speakerPref.setKey(vehicle + SUFFIX_PREF_SPEAKERPHONE);
+			speakerPref.setChecked(speaker);
+			speakerPref.setTitle(R.string.pref_speakerphone);
+			// Wifi preference
+			wifiPref = new CheckBoxPreference(getActivity());
+			wifiPref.setKey(vehicle + SUFFIX_PREF_WIFI);
+			wifiPref.setChecked(wifi);
+			wifiPref.setTitle(R.string.pref_wifi);
+
+			// Add the preferences to the screen
+			prefScreen.addPreference(enabledPref);
+			prefScreen.addPreference(wifiPref);
+			prefScreen.addPreference(bluetoothPref);
+			prefScreen.addPreference(speakerPref);
+
+			// Add the screen to the category
+			profilesCategory.addPreference(prefScreen);
+			wifiPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
+			bluetoothPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
+			speakerPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
+		}
+
 		getPreferenceManager().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 	}
