@@ -48,7 +48,7 @@ public class ProfilerActivity extends Activity implements ActionBar.TabListener 
 	public static final String[] VehiclesColumnsProjection = { COLUMN_CATEGORY,
 			COLUMN_ICON };
 
-	public static HashMap<String, Bitmap> sVehiclesMap = new HashMap<String, Bitmap>();
+	public static HashMap<String, Bitmap> sVehiclesMap;
 
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -115,6 +115,7 @@ public class ProfilerActivity extends Activity implements ActionBar.TabListener 
 		cursor.close();
 
 		// Create hash map for the vehicles
+		sVehiclesMap = new HashMap<String, Bitmap>();
 		for (VehicleItem item : vehiclesList) {
 			sVehiclesMap.put(item.getCategory(), item.getIcon());
 		}
