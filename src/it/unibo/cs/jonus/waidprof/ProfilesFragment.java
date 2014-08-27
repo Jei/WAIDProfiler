@@ -149,6 +149,7 @@ public class ProfilesFragment extends PreferenceFragment implements
 			selectedVehicles.setEntries(selectablesArray);
 			selectedVehicles.setEntryValues(selectablesArray);
 			selectedVehicles.setValues(newTransitions);
+			// TODO add description
 			
 			// Add the transitions to the preference screen
 			transitionsScreen.addPreference(selectedVehicles);

@@ -5,7 +5,9 @@ package it.unibo.cs.jonus.waidprof;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -48,7 +50,7 @@ public class ListenerService extends Service {
 	private Handler handler = new Handler();
 	private VehicleInstancesContentObserver evaluationsObserver = null;
 	private ArrayList<VehicleInstance> evaluationList;
-	private String lastMrVehicle;
+	private String lastPredictedVehicle;
 
 	// Android managers
 	private WifiManager wifiManager;
@@ -97,19 +99,23 @@ public class ListenerService extends Service {
 			// Get the most recurring vehicle in the history
 			String mrVehicle = getMostRecurringVehicle();
 
-			// Send the new evaluation to the listening activities.
-			if (mListener != null) {
-				mListener.sendCurrentEvaluation(newVehicleInstance);
-				mListener.sendPredictedVehicle(mrVehicle);
-			}
+			// Check if the transition is blacklisted
+			if (!isBlacklisted(lastPredictedVehicle, mrVehicle)) {
+				// Update the state of the device
+				updateDeviceState(mrVehicle);
 
-			// Update the state of the device
-			updateDeviceState(mrVehicle);
+				// Show a notification of the current mode
+				if (!mrVehicle.equals(lastPredictedVehicle)) {
+					showVehicleNotification(mrVehicle);
+				}
 
-			// Show a notification of the current mode
-			if (!mrVehicle.equals(lastMrVehicle)) {
-				showVehicleNotification(mrVehicle);
-				lastMrVehicle = mrVehicle;
+				// Send the new evaluation to the listening activities.
+				if (mListener != null) {
+					mListener.sendCurrentEvaluation(newVehicleInstance);
+					mListener.sendPredictedVehicle(mrVehicle);
+				}
+
+				lastPredictedVehicle = mrVehicle;
 			}
 		}
 
@@ -170,7 +176,8 @@ public class ListenerService extends Service {
 		registerContentObserver();
 
 		// Create the miniature icons for the vehicles
-		for (Map.Entry<String, Bitmap> entry : ProfilerActivity.sVehiclesMap.entrySet()) {
+		for (Map.Entry<String, Bitmap> entry : ProfilerActivity.sVehiclesMap
+				.entrySet()) {
 			Bitmap vehicleIcon = entry.getValue();
 			vehicleIcon = scale(vehicleIcon);
 			vehicleIcon = invert(vehicleIcon);
@@ -178,7 +185,7 @@ public class ListenerService extends Service {
 			vehicleMiniaturesMap.put(entry.getKey(), vehicleIcon);
 		}
 
-		lastMrVehicle = "none";
+		lastPredictedVehicle = "none";
 
 		Toast.makeText(getApplicationContext(),
 				getText(R.string.listener_service_started), Toast.LENGTH_SHORT)
@@ -295,6 +302,22 @@ public class ListenerService extends Service {
 		}
 
 		return mrVehicle;
+	}
+
+	/**
+	 * Checks the transitions for the specified vehicles in the preferences. If
+	 * the transitions is blacklisted, return true
+	 */
+	private boolean isBlacklisted(String currentVehicle, String nextVehicle) {
+		boolean result = false;
+
+		Set<String> transitions = sharedPrefs.getStringSet(currentVehicle
+				+ ProfilesFragment.SUFFIX_TRANSITIONS, new HashSet<String>());
+		if (transitions.contains(nextVehicle)) {
+			result = true;
+		}
+
+		return result;
 	}
 
 	/**
