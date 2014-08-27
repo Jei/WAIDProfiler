@@ -20,6 +20,11 @@
             android:summary="@string/settings_history_length_desc"
             android:title="@string/settings_history_length_title" >
         </EditTextPreference>
+        <PreferenceScreen
+            android:key="transitions_screen"
+            android:title="@string/settings_transitions_blacklist_title"
+            android:summary="@string/settings_transitions_blacklist_desc">
+        </PreferenceScreen>
     </PreferenceCategory>
 
 </PreferenceScreen>

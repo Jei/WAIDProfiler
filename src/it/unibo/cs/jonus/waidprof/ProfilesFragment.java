@@ -3,7 +3,9 @@
  */
 package it.unibo.cs.jonus.waidprof;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -11,6 +13,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
+import android.preference.MultiSelectListPreference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -28,7 +31,9 @@ public class ProfilesFragment extends PreferenceFragment implements
 	public static final String KEY_CATEGORY_PROFILES = "category_profiles";
 	public static final String KEY_PREF_HISTORY_LENGTH = "pref_history_length";
 	public static final String KEY_PREF_RESTORE_STATE = "pref_restore_state";
+	public static final String KEY_TRANSITIONS_SCREEN = "transitions_screen";
 	public static final String PREFIX_PROFILE = "profile_";
+	public static final String SUFFIX_TRANSITIONS = "_transitions";
 	public static final String SUFFIX_PREF_WIFI = "_pref_wifi";
 	public static final String SUFFIX_PREF_BLUETOOTH = "_pref_bluetooth";
 	public static final String SUFFIX_PREF_SPEAKERPHONE = "_pref_speakerphone";
@@ -57,10 +62,18 @@ public class ProfilesFragment extends PreferenceFragment implements
 		SharedPreferences prefs = prefManager.getSharedPreferences();
 		PreferenceCategory profilesCategory = (PreferenceCategory) findPreference(KEY_CATEGORY_PROFILES);
 		profilesCategory.removeAll();
-		
-		// Get the screens for all the vehicles
-		for (Map.Entry<String, Bitmap> entry : ProfilerActivity.sVehiclesMap
-				.entrySet()) {
+		PreferenceScreen transitionsScreen = (PreferenceScreen) findPreference(KEY_TRANSITIONS_SCREEN);
+		transitionsScreen.removeAll();
+
+		// Get a set of vehicles and vehicle names
+		Set<Map.Entry<String, Bitmap>> vehicleSet = ProfilerActivity.sVehiclesMap
+				.entrySet();
+		Set<String> vehicleNames = new HashSet<String>();
+		for (Map.Entry<String, Bitmap> entry : vehicleSet) {
+			vehicleNames.add(entry.getKey());
+		}
+		// Get the screens and transitions for all the vehicles
+		for (Map.Entry<String, Bitmap> entry : vehicleSet) {
 			String vehicle = entry.getKey();
 			String profileKey = PREFIX_PROFILE + vehicle;
 			PreferenceScreen prefScreen = prefManager
@@ -75,6 +88,7 @@ public class ProfilesFragment extends PreferenceFragment implements
 					+ SUFFIX_PREF_BLUETOOTH, false);
 			boolean speaker = prefs.getBoolean(vehicle
 					+ SUFFIX_PREF_SPEAKERPHONE, false);
+			Set<String> transitions = prefs.getStringSet(vehicle + SUFFIX_TRANSITIONS, new HashSet<String>());
 
 			CheckBoxPreference enabledPref = new CheckBoxPreference(
 					getActivity());
@@ -115,6 +129,29 @@ public class ProfilesFragment extends PreferenceFragment implements
 			wifiPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
 			bluetoothPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
 			speakerPref.setDependency(vehicle + SUFFIX_PREF_ENABLED);
+
+			// Get transitions
+			MultiSelectListPreference selectedVehicles = new MultiSelectListPreference(
+					getActivity());
+			selectedVehicles.setTitle(vehicle);
+			selectedVehicles.setKey(vehicle + SUFFIX_TRANSITIONS);
+
+			// Get the array of selectable vehicles
+			Set<String> selectableVehicles = new HashSet<String>(vehicleNames);
+			selectableVehicles.remove(vehicle);
+			
+			// Modify the existent values if needed
+			Set<String> newTransitions = new HashSet<String>(transitions);
+			newTransitions.retainAll(selectableVehicles);
+			
+			// Set entries and selected values
+			String[] selectablesArray = selectableVehicles.toArray(new String[0]);
+			selectedVehicles.setEntries(selectablesArray);
+			selectedVehicles.setEntryValues(selectablesArray);
+			selectedVehicles.setValues(newTransitions);
+			
+			// Add the transitions to the preference screen
+			transitionsScreen.addPreference(selectedVehicles);
 		}
 
 		getPreferenceManager().getSharedPreferences()

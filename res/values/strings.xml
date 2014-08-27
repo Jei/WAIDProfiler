@@ -29,6 +29,8 @@
 	<string name="history_length_max_amount">Maximum length limited to </string>
 	<string name="history_length_min_amount">Minimum length limited to </string>
 	<string name="notification_mode_vehicle">Current mode: </string>
+	<string name="settings_transitions_blacklist_title">Transitions Blacklist</string>
+	<string name="settings_transitions_blacklist_desc">The list of transitions to ignore</string>
     
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
